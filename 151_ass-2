@@ -1,0 +1,29 @@
+#include <iostream>
+using namespace std;
+
+int main() {
+    int temps[] = {30, 25, 27, 22, 28, 31, 26}; // Example temperature readings
+    int n = sizeof(temps) / sizeof(temps[0]);
+
+    // Bubble Sort
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = 0; j < n - i - 1; ++j) {
+            if (temps[j] > temps[j + 1]) {
+                int temp = temps[j];
+                temps[j] = temps[j + 1];
+                temps[j + 1] = temp;
+            }
+        }
+    }
+
+    // Display sorted temperatures
+    cout << "Sorted temperatures:\n";
+    for (int i = 0; i < n; ++i) {
+        cout << temps[i] << " ";
+    }
+    cout << endl;
+}
+
+
+
+
