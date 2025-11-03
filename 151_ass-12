@@ -1,0 +1,53 @@
+#include <iostream>
+using namespace std;
+#define INF 9999
+#define MAX 10   // maximum number of houses
+
+int main() {
+    int n; 
+    cout << "Enter number of houses: ";
+    cin >> n;
+
+    int cost[MAX][MAX];
+    cout << "Enter cost matrix (enter 0 if no direct pipeline):\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            cin >> cost[i][j];
+            if (cost[i][j] == 0 && i != j)
+                cost[i][j] = INF; // no connection
+        }
+    }
+
+    int dist[MAX];   
+    int visited[MAX]; 
+    // initialize
+    for (int i = 0; i < n; i++) {
+        dist[i] = INF;
+        visited[i] = 0;
+    }
+    int source = 0; 
+    dist[source] = 0;
+
+    for (int count = 0; count < n - 1; count++) {
+        int u = -1, minDist = INF;
+
+        
+        for (int i = 0; i < n; i++) {
+            if (!visited[i] && dist[i] < minDist) {
+                minDist = dist[i];
+                u = i;
+            }
+        }
+        visited[u] = 1;
+
+        for (int v = 0; v < n; v++) {
+            if (!visited[v] && cost[u][v] != INF && dist[u] + cost[u][v] < dist[v]) {
+                dist[v] = dist[u] + cost[u][v];
+            }
+        }
+    }
+    cout << "\nMinimum pipeline laying cost from source house 0:\n";
+    for (int i = 0; i < n; i++) {
+        cout << "House " << i << " : " << dist[i] << endl;
+    }
+}
