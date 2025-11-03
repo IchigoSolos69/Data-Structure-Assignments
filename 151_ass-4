@@ -1,0 +1,120 @@
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    int grades[5][4];               // 5 students, 4 courses grades matrix
+    int sparseGrades[21][3];        // Sparse representation: max 20 non-zero + header row
+
+    sparseGrades[0][0] = 5;         // Number of rows (students)
+    sparseGrades[0][1] = 4;         // Number of columns (courses)
+    sparseGrades[0][2] = 0;         // Number of non-zero elements (to be updated)
+
+    int sparseIndex = 1;
+
+    // Input grades
+    for (int student = 0; student < 5; student++)
+    {
+        for (int course = 0; course < 4; course++)
+        {
+            cout << "Enter grade for student " << student << ", course " << course << ": ";
+            cin >> grades[student][course];
+        }
+    }
+
+    cout << "\nGrades matrix (rows: students, columns: courses):" << endl;
+    for (int student = 0; student < 5; student++)
+    {
+        for (int course = 0; course < 4; course++)
+        {
+            cout << grades[student][course] << " ";
+        }
+        cout << endl;
+    }
+
+    // Build sparse matrix representation
+    for (int student = 0; student < 5; student++)
+    {
+        for (int course = 0; course < 4; course++)
+        {
+            if (grades[student][course] != 0)
+            {
+                sparseGrades[sparseIndex][0] = student;
+                sparseGrades[sparseIndex][1] = course;
+                sparseGrades[sparseIndex][2] = grades[student][course];
+                sparseIndex++;
+            }
+        }
+    }
+    sparseGrades[0][2] = sparseIndex - 1; // Update count of non-zero elements
+
+    // Display sparse matrix
+    cout << "Sparse matrix representation (student, course, grade):" << endl;
+    for (int i = 0; i < sparseIndex; i++)
+    {
+        cout << sparseGrades[i][0] << " " << sparseGrades[i][1] << " " << sparseGrades[i][2] << endl;
+    }
+
+    double studentSum[5];
+    int studentCount[5];
+    double courseSum[4];
+    int courseCount[4];
+
+    // Initialize sums and counts
+    for (int i = 0; i < 5; i++)
+    {
+        studentSum[i] = 0;
+        studentCount[i] = 0;
+    }
+    for (int j = 0; j < 4; j++)
+    {
+        courseSum[j] = 0;
+        courseCount[j] = 0;
+    }
+
+    // Calculate sums and counts for averages
+    for (int student = 0; student < 5; student++)
+    {
+        for (int course = 0; course < 4; course++)
+        {
+            studentSum[student] += grades[student][course];
+            if (grades[student][course] != 0)
+                studentCount[student]++;
+
+            courseSum[course] += grades[student][course];
+            if (grades[student][course] != 0)
+                courseCount[course]++;
+        }
+    }
+
+    // Compute averages
+    for (int i = 0; i < 5; i++)
+    {
+        if (studentCount[i] != 0)
+            studentSum[i] /= studentCount[i];
+    }
+    for (int j = 0; j < 4; j++)
+    {
+        if (courseCount[j] != 0)
+            courseSum[j] /= courseCount[j];
+        else
+            courseSum[j] = 0;
+    }
+
+    // Display averages
+    cout << "Average grade per student:" << endl;
+    for (int i = 0; i < 5; i++)
+    {
+        cout << "Student " << (i + 1) << ": " << studentSum[i] << endl;
+    }
+
+    cout << "Average grade per course:" << endl;
+    for (int j = 0; j < 4; j++)
+    {
+        cout << "Course " << (j + 1) << ": " << courseSum[j] << endl;
+    }
+}
+
+
+
+
