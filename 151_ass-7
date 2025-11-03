@@ -1,0 +1,143 @@
+#include <iostream>
+using namespace std;
+
+const int MAX_SIZE = 100;
+
+class CustomerRequest {
+public:
+    int requestID;
+    string customerName;
+    string serviceType;
+    bool processed;
+
+    CustomerRequest() {
+        requestID = 0;
+        customerName = "";
+        serviceType = "";
+        processed = false;
+    }
+
+    CustomerRequest(int id, string name, string service) {
+        requestID = id;
+        customerName = name;
+        serviceType = service;
+        processed = false;
+    }
+
+    void print() {
+        cout << "Request ID: " << requestID 
+             << ", Customer: " << customerName 
+             << ", Service: " << serviceType
+             << ", Status: " << (processed ? "Processed" : "Pending") << endl;
+    }
+};
+
+class RequestQueue {
+private:
+    CustomerRequest queue[MAX_SIZE];
+    int front;
+    int rear;
+    int count;
+public:
+    RequestQueue() {
+        front = 0;
+        rear = -1;
+        count = 0;
+    }
+
+    bool isEmpty() {
+        return count == 0;
+    }
+
+    bool isFull() {
+        return count == MAX_SIZE;
+    }
+
+    void enqueue(CustomerRequest req) {
+        if(isFull()) {
+            cout << "Queue is full. Cannot add new request." << endl;
+            return;
+        }
+        rear = (rear + 1) % MAX_SIZE;
+        queue[rear] = req;
+        count++;
+        cout << "Request added successfully." << endl;
+    }
+
+    CustomerRequest dequeue() {
+        if(isEmpty()) {
+            cout << "Queue is empty. No requests to process." << endl;
+            return CustomerRequest();
+        }
+        CustomerRequest req = queue[front];
+        front = (front + 1) % MAX_SIZE;
+        count--;
+        return req;
+    }
+
+    void printAllRequests() {
+        if(isEmpty()) {
+            cout << "No pending requests." << endl;
+            return;
+        }
+        cout << "Current Requests in Queue:" << endl;
+        for(int i=0; i < count; i++) {
+            int index = (front + i) % MAX_SIZE;
+            queue[index].print();
+        }
+    }
+};
+
+int main() {
+    RequestQueue rq;
+
+    rq.enqueue(CustomerRequest(101, "John Doe", "Technical Support"));
+    rq.enqueue(CustomerRequest(102, "Jane Smith", "Billing Inquiry"));
+    rq.enqueue(CustomerRequest(103, "David Brown", "Product Information"));
+
+    int choice;
+    do {
+        cout << "\n1. Add New Request\n2. Process Next Request\n3. View All Requests\n4. Exit\nChoose option: ";
+        cin >> choice;
+        cin.ignore();
+
+        if(choice == 1) {
+            int id;
+            string name, service;
+            cout << "Enter Request ID: ";
+            cin >> id;
+            cin.ignore();
+            cout << "Enter Customer Name: ";
+            getline(cin, name);
+            cout << "Enter Service Type: ";
+            getline(cin, service);
+
+            rq.enqueue(CustomerRequest(id, name, service));
+        }
+        else if(choice == 2) {
+            if(rq.isEmpty()) {
+                cout << "No requests to process." << endl;
+            } else {
+                CustomerRequest req = rq.dequeue();
+                req.processed = true;
+                cout << "Processing Request:" << endl;
+                req.print();
+                cout << "Request processed successfully." << endl;
+            }
+        }
+        else if(choice == 3) {
+            rq.printAllRequests();
+        }
+        else if(choice == 4) {
+            cout << "Exiting program." << endl;
+        }
+        else {
+            cout << "Invalid option. Try again." << endl;
+        }
+    } while(choice != 4);
+}
+
+
+
+
+
