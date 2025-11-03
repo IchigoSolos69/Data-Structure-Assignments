@@ -1,0 +1,128 @@
+#include <iostream>
+using namespace std;
+
+class Stack {
+    char arr[100];
+    int top;
+public:
+    Stack() {
+        top = -1;
+    }
+
+    void push(char c) {
+        if(top < 99) {
+            arr[++top] = c;
+        }
+    }
+
+    void pop() {
+        if(top >= 0) {
+            top--;
+        }
+    }
+
+    char peek() {
+        if(top >= 0) {
+            return arr[top];
+        }
+        return '\0';
+    }
+
+    bool empty() {
+        return top == -1;
+    }
+
+    string toString() {
+        string s = "";
+        for(int i = 0; i <= top; i++) s += arr[i];
+        return s;
+    }
+};
+
+int precedence(char op) {
+    if(op == '+' || op == '-') {
+        return 1;
+    }
+    if(op == '*' || op == '/') {
+        return 2;
+    }
+    return -1;
+}
+
+bool isOperator(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+string infixToPostfix(const string& infix) {
+    Stack st;
+    string postfix;
+
+    for(char c : infix) {
+        if(isalpha(c) || isdigit(c)) {
+            postfix += c;
+        }
+        else if(c == '(') {
+            st.push(c);
+        }
+        else if(c == ')') {
+            while(!st.empty() && st.peek() != '(') {
+                postfix += st.peek();
+                st.pop();
+            }
+            if(!st.empty()) {
+                st.pop(); 
+            }
+        }
+        else if(isOperator(c)) {
+            while(!st.empty() && precedence(st.peek()) >= precedence(c)) {
+                postfix += st.peek();
+                st.pop();
+            }
+            st.push(c);
+        }
+    }
+
+    while(!st.empty()) {
+        postfix += st.peek();
+        st.pop();
+    }
+
+    return postfix;
+}
+
+string reverseAndSwapParentheses(const string& s) {
+    string result = "";
+    for(int i = s.length() - 1; i >= 0; i--) {
+        if(s[i] == '(') result += ')';
+        else if(s[i] == ')') result += '(';
+        else result += s[i];
+    }
+    return result;
+}
+
+string infixToPrefix(const string& infix) {
+    string revInfix = reverseAndSwapParentheses(infix);
+    string revPostfix = infixToPostfix(revInfix);
+    string prefix = "";
+    for(int i = revPostfix.length() - 1; i >= 0; i--) {
+        prefix += revPostfix[i];
+    }
+    return prefix;
+}
+
+int main() {
+    string infix;
+    cout << "Enter infix expression: ";
+    cin >> infix;
+
+    string postfix = infixToPostfix(infix);
+    string prefix = infixToPrefix(infix);
+
+    cout << "Postfix Expression: " << postfix << endl;
+    cout << "Prefix Expression: " << prefix << endl;
+}
+
+
+
+
+
