@@ -1,0 +1,354 @@
+#include <iostream>
+using namespace std;
+
+// Node structure for the BST
+struct Node {
+    int data;
+    Node* left;
+    Node* right;
+    Node(int val) : data(val), left(nullptr), right(nullptr) {}
+};
+
+// Linked list node structure for queue storing BST nodes (for level order traversal)
+struct QueueNode {
+    Node* data;
+    QueueNode* next;
+    QueueNode(Node* val) : data(val), next(nullptr) {}
+};
+
+// Custom linked list based queue implementation tailored for Node*
+class NodeQueue {
+private:
+    QueueNode* front;
+    QueueNode* rear;
+
+public:
+    NodeQueue() : front(nullptr), rear(nullptr) {}
+
+    // Checks if the queue is empty
+    bool isEmpty() {
+        return front == nullptr;
+    }
+
+    // Adds a BST node to the rear of the queue
+    void enqueue(Node* val) {
+        QueueNode* newNode = new QueueNode(val);
+        if (rear == nullptr) { // Empty queue case
+            front = rear = newNode;
+            return;
+        }
+        rear->next = newNode;
+        rear = newNode;
+    }
+
+    // Removes and returns the BST node from front of the queue
+    Node* dequeue() {
+        if (isEmpty()) return nullptr;
+        QueueNode* temp = front;
+        Node* val = temp->data;
+        front = front->next;
+        if (front == nullptr) rear = nullptr; // Queue became empty
+        delete temp;
+        return val;
+    }
+
+    // Empties the entire queue safely
+    void clear() {
+        while (!isEmpty()) dequeue();
+    }
+
+    // Destructor to ensure no memory leaks
+    ~NodeQueue() {
+        clear();
+    }
+};
+
+class BST {
+private:
+    Node* root;
+
+    // Recursive helper to insert value into BST (ignores duplicates)
+    Node* insert(Node* node, int val) {
+        if(!node) return new Node(val); // Insert at leaf
+        if(val < node->data) node->left = insert(node->left, val);
+        else if(val > node->data) node->right = insert(node->right, val);
+        else cout << "Duplicate value " << val << " not inserted." << endl;
+        return node;
+    }
+
+    // Finds minimum value node in subtree (used in delete)
+    Node* minValueNode(Node* node) {
+        Node* current = node;
+        while(current && current->left) current = current->left;
+        return current;
+    }
+
+    // Recursive helper to delete a node with given value
+    Node* deleteNode(Node* root, int val) {
+        if(!root) return root;
+        if(val < root->data) root->left = deleteNode(root->left, val);
+        else if(val > root->data) root->right = deleteNode(root->right, val);
+        else {
+            // Node with only right child or no child
+            if(!root->left) {
+                Node* temp = root->right;
+                delete root;
+                return temp;
+            }
+            // Node with only left child
+            else if(!root->right) {
+                Node* temp = root->left;
+                delete root;
+                return temp;
+            }
+            // Node with two children: get inorder successor
+            Node* temp = minValueNode(root->right);
+            root->data = temp->data;
+            root->right = deleteNode(root->right, temp->data);
+        }
+        return root;
+    }
+
+    // Recursive search helper - returns node pointer or nullptr
+    Node* search(Node* node, int val) {
+        if(!node || node->data == val) return node;
+        if(val < node->data) return search(node->left, val);
+        return search(node->right, val);
+    }
+
+    // Recursive inorder traversal
+    void inorder(Node* node) {
+        if(!node) return;
+        inorder(node->left);
+        cout << node->data << " ";
+        inorder(node->right);
+    }
+
+    // Recursive preorder traversal
+    void preorder(Node* node) {
+        if(!node) return;
+        cout << node->data << " ";
+        preorder(node->left);
+        preorder(node->right);
+    }
+
+    // Recursive postorder traversal
+    void postorder(Node* node) {
+        if(!node) return;
+        postorder(node->left);
+        postorder(node->right);
+        cout << node->data << " ";
+    }
+
+    // Calculates depth (height) of tree recursively
+    int depth(Node* node) {
+        if(!node) return 0;
+        int ldepth = depth(node->left);
+        int rdepth = depth(node->right);
+        return max(ldepth, rdepth) + 1;
+    }
+
+    // Creates mirror image by swapping left and right at each node
+    void mirror(Node* node) {
+        if(!node) return;
+        mirror(node->left);
+        mirror(node->right);
+        swap(node->left, node->right);
+    }
+
+    // Deep copies the tree recursively
+    Node* copyTree(Node* node) {
+        if(!node) return nullptr;
+        Node* newNode = new Node(node->data);
+        newNode->left = copyTree(node->left);
+        newNode->right = copyTree(node->right);
+        return newNode;
+    }
+
+    // Displays parent nodes along with their children
+    void displayParents(Node* node) {
+        if(!node) return;
+        if(node->left || node->right) {
+            cout << "Parent: " << node->data;
+            if(node->left) cout << ", Left Child: " << node->left->data;
+            if(node->right) cout << ", Right Child: " << node->right->data;
+            cout << endl;
+        }
+        displayParents(node->left);
+        displayParents(node->right);
+    }
+
+    // Displays all leaf nodes (nodes without children)
+    void displayLeaves(Node* node) {
+        if(!node) return;
+        if(!node->left && !node->right) cout << node->data << " ";
+        displayLeaves(node->left);
+        displayLeaves(node->right);
+    }
+
+    // Level order traversal: prints tree level by level using NodeQueue
+    void levelOrder(Node* root) {
+        if(!root) return;
+
+        NodeQueue q;
+        q.enqueue(root);
+
+        while(!q.isEmpty()) {
+            int levelCount = 0;
+            NodeQueue tempQueue;
+
+            // Count how many nodes are at current level (copy queue to count)
+            NodeQueue copyQueue = q;
+            while(!copyQueue.isEmpty()) {
+                copyQueue.dequeue();
+                levelCount++;
+            }
+
+            // Process all current level nodes and enqueue their children
+            for(int i = 0; i < levelCount; i++) {
+                Node* curr = q.dequeue();
+                cout << curr->data << " ";
+                if(curr->left) tempQueue.enqueue(curr->left);
+                if(curr->right) tempQueue.enqueue(curr->right);
+            }
+            cout << endl;
+
+            q = tempQueue; // Move to next level nodes
+        }
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    void insert(int val) { root = insert(root, val); }
+    void deleteNode(int val) { root = deleteNode(root, val); }
+
+    void search(int val) {
+        Node* res = search(root, val);
+        if(res) cout << "Value " << val << " found in tree." << endl;
+        else cout << "Value " << val << " not found." << endl;
+    }
+
+    void displayInorder() {
+        cout << "Inorder traversal: ";
+        inorder(root);
+        cout << endl;
+    }
+
+    void displayPreorder() {
+        cout << "Preorder traversal: ";
+        preorder(root);
+        cout << endl;
+    }
+
+    void displayPostorder() {
+        cout << "Postorder traversal: ";
+        postorder(root);
+        cout << endl;
+    }
+
+    void displayDepth() {
+        cout << "Depth of tree: " << depth(root) << endl;
+    }
+
+    void buildMirror() {
+        mirror(root);
+        cout << "Mirror image created." << endl;
+    }
+
+    BST* createCopy() {
+        BST* newTree = new BST();
+        newTree->root = copyTree(root);
+        return newTree;
+    }
+
+    void displayParents() {
+        cout << "Parent nodes with their children:" << endl;
+        displayParents(root);
+    }
+
+    void displayLeaves() {
+        cout << "Leaf nodes: ";
+        displayLeaves(root);
+        cout << endl;
+    }
+
+    void displayLevelWise() {
+        cout << "Level-wise display of tree:" << endl;
+        levelOrder(root);
+    }
+};
+
+int main() {
+    BST tree;
+    int choice, val;
+
+    do {
+        cout << "\n1. Insert\n2. Delete\n3. Search\n4. Display Inorder\n5. Display Preorder\n6. Display Postorder\n7. Display Depth\n"
+             << "8. Mirror Image\n9. Create Copy\n10. Display Parents & Children\n11. Display Leaf Nodes\n12. Display Level Wise\n13. Exit\nEnter choice: ";
+        cin >> choice;
+
+        switch(choice) {
+            case 1:
+                cout << "Enter value to insert: ";
+                cin >> val;
+                tree.insert(val);
+                break;
+            case 2:
+                cout << "Enter value to delete: ";
+                cin >> val;
+                tree.deleteNode(val);
+                break;
+            case 3:
+                cout << "Enter value to search: ";
+                cin >> val;
+                tree.search(val);
+                break;
+            case 4:
+                tree.displayInorder();
+                break;
+            case 5:
+                tree.displayPreorder();
+                break;
+            case 6:
+                tree.displayPostorder();
+                break;
+            case 7:
+                tree.displayDepth();
+                break;
+            case 8:
+                tree.buildMirror();
+                break;
+            case 9: {
+                BST* newTree = tree.createCopy();
+                cout << "Copy created. Displaying its inorder traversal:\n";
+                newTree->displayInorder();
+                delete newTree;
+                break;
+            }
+            case 10:
+                tree.displayParents();
+                break;
+            case 11:
+                tree.displayLeaves();
+                break;
+            case 12:
+                tree.displayLevelWise();
+                break;
+            case 13:
+                cout << "Exiting." << endl;
+                break;
+            default:
+                cout << "Invalid choice." << endl;
+        }
+
+    } while(choice != 13);
+}
+
+
+
+
+
+
+
+
