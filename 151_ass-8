@@ -1,0 +1,120 @@
+#include <iostream>
+using namespace std;
+
+class Order {
+public:
+    int orderID;
+    string items;  
+    string customerName;
+    bool processed; 
+
+    Order() : orderID(0), items(""), customerName(""), processed(false) {}
+
+    Order(int id, string itemsList, string name)
+        : orderID(id), items(itemsList), customerName(name), processed(false) {}
+
+    void print() {
+        cout << "Order ID: " << orderID
+             << ", Customer: " << customerName
+             << ", Items: " << items
+             << ", Status: " << (processed ? "Processed" : "Pending") << endl;
+    }
+};
+
+class CircularQueue {
+private:
+    Order queue[100];
+    int front, rear, count;
+
+public:
+    CircularQueue() : front(0), rear(-1), count(0) {}
+
+    bool isEmpty() { return count == 0; }
+    bool isFull() { return count == MAX_SIZE; }
+
+    void enqueue(const Order& order) {
+        if (isFull()) {
+            cout << "Queue is full! Cannot add order." << endl;
+            return;
+        }
+        rear = (rear + 1) % MAX_SIZE;
+        queue[rear] = order;
+        count++;
+        cout << "Order added successfully." << endl;
+    }
+
+    Order dequeue() {
+        if (isEmpty()) {
+            cout << "Queue is empty! No orders to process." << endl;
+            return Order();
+        }
+        Order ord = queue[front];
+        front = (front + 1) % MAX_SIZE;
+        count--;
+        return ord;
+    }
+
+    void printAll() {
+        if (isEmpty()) {
+            cout << "No pending orders." << endl;
+            return;
+        }
+        cout << "Current Orders in Drive-Thru Queue:" << endl;
+        for (int i = 0; i < count; i++) {
+            int idx = (front + i) % MAX_SIZE;
+            queue[idx].print();
+        }
+    }
+};
+
+int main() {
+    CircularQueue cq;
+
+    cq.enqueue(Order(101, "Burger, Fries, Drink", "Rahul Sharma"));
+    cq.enqueue(Order(102, "Chicken Sandwich, Salad, Drink", "Priya Patel"));
+    cq.enqueue(Order(103, "Pizza, Wings, Drink", "Aarav Gupta"));
+
+    int choice;
+    do {
+        cout << "\nMenu:\n1. Add New Order\n2. Process Next Order\n3. View All Orders\n4. Exit\nChoose option: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            int orderId;
+            string items, name;
+            cout << "Enter Order ID: ";
+            cin >> orderId;
+            cin.ignore();
+            cout << "Enter Items (comma separated): ";
+            getline(cin, items);
+            cout << "Enter Customer Name: ";
+            getline(cin, name);
+
+            cq.enqueue(Order(orderId, items, name));
+        }
+        else if (choice == 2) {
+            if (cq.isEmpty()) {
+                cout << "No orders to process." << endl;
+            } else {
+                Order ord = cq.dequeue();
+                ord.processed = true;
+                cout << "Processing Order:" << endl;
+                ord.print();
+                cout << "Order processed successfully." << endl;
+            }
+        }
+        else if (choice == 3) {
+            cq.printAll();
+        }
+        else if (choice == 4) {
+            cout << "Exiting." << endl;
+        }
+        else {
+            cout << "Invalid option." << endl;
+        }
+    } while (choice != 4);
+}
+
+
+
+
