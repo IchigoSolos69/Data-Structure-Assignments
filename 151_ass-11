@@ -1,0 +1,129 @@
+#include <iostream>
+using namespace std;
+
+const int TABLE_SIZE = 10;  // size of hash table
+
+// Student record
+struct Student {
+    int id;
+    char name[50];
+    char department[30];
+    float gpa;
+    Student* next; 
+};
+
+// Hash table class
+class StudentHashTable {
+private:
+    Student* table[TABLE_SIZE];
+
+    // Simple hash function
+    int hashFunction(int id) {
+        return id % TABLE_SIZE;
+    }
+
+public:
+    StudentHashTable() {
+        for (int i = 0; i < TABLE_SIZE; i++)
+            table[i] = nullptr;
+    }
+
+    // Add a new student
+    void addStudent(int id, const char* name, const char* department, float gpa) {
+        int index = hashFunction(id);
+
+        Student* newStudent = new Student();
+        newStudent->id = id;
+        int i = 0;
+        while(name[i] != '\0') { newStudent->name[i] = name[i]; i++; }
+        newStudent->name[i] = '\0';
+        i = 0;
+        while(department[i] != '\0') { newStudent->department[i] = department[i]; i++; }
+        newStudent->department[i] = '\0';
+        newStudent->gpa = gpa;
+        newStudent->next = table[index];
+        table[index] = newStudent;
+
+        cout << "Student added successfully.\n";
+    }
+
+    // Retrieve a student by ID
+    void getStudent(int id) {
+        int index = hashFunction(id);
+        Student* current = table[index];
+        while (current != nullptr) {
+            if (current->id == id) {
+                cout << "\nStudent Found:\n";
+                cout << "ID: " << current->id << "\nName: " << current->name
+                     << "\nDepartment: " << current->department
+                     << "\nGPA: " << current->gpa << endl;
+                return;
+            }
+            current = current->next;
+        }
+        cout << "Student with ID " << id << " not found.\n";
+    }
+
+    // Display all students
+    void displayAll() {
+        cout << "\n--- All Students ---\n";
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            Student* current = table[i];
+            if (current) {
+                cout << "Bucket " << i << ":\n";
+                while (current != nullptr) {
+                    cout << "ID: " << current->id << ", Name: " << current->name
+                         << ", Department: " << current->department
+                         << ", GPA: " << current->gpa << endl;
+                    current = current->next;
+                }
+            }
+        }
+    }
+};
+
+int main() {
+    StudentHashTable hashTable;
+
+    int choice;
+    do {
+        cout << "\n--- Student Information System ---\n";
+        cout << "1. Add Student\n2. Retrieve Student by ID\n3. Display All Students\n4. Exit\nEnter choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            int id;
+            char name[50], department[30];
+            float gpa;
+            cout << "Enter Student ID: ";
+            cin >> id;
+            cout << "Enter Name: ";
+            cin >> name;
+            cout << "Enter Department: ";
+            cin >> department;
+            cout << "Enter GPA: ";
+            cin >> gpa;
+            hashTable.addStudent(id, name, department, gpa);
+        } 
+        else if (choice == 2) {
+            int id;
+            cout << "Enter Student ID to retrieve: ";
+            cin >> id;
+            hashTable.getStudent(id);
+        } 
+        else if (choice == 3) {
+            hashTable.displayAll();
+        } 
+        else if (choice == 4) {
+            cout << "Exiting...\n";
+        } 
+        else {
+            cout << "Invalid choice!\n";
+        }
+    } while (choice != 4);
+}
+
+
+
+
+
