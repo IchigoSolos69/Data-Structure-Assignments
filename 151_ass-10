@@ -1,0 +1,264 @@
+#include <iostream>
+using namespace std;
+
+struct Contact {
+    int id;
+    char name[50];
+    char phone[15];
+    char email[50];
+};
+
+struct Node {
+    Contact data;
+    Node* left;
+    Node* right;
+    int height;
+};
+
+// Utility: Get height of node
+int height(Node* n) {
+    return (n == nullptr) ? 0 : n->height;
+}
+
+// Utility: Get max of two integers
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Utility: Compare two C-style strings
+int cmp(const char* s1, const char* s2) {
+    while (*s1 && (*s1 == *s2)) {
+        s1++; s2++;
+    }
+    return (unsigned char)*s1 - (unsigned char)*s2;
+}
+
+// Utility: Copy one C-string to another
+void copyStr(char* dest, const char* src) {
+    while (*src) {
+        *dest++ = *src++;
+    }
+    *dest = '\0';
+}
+
+// Create new node
+Node* createNode(Contact c) {
+    Node* node = new Node();
+    node->data = c;
+    node->left = node->right = nullptr;
+    node->height = 1;
+    return node;
+}
+
+// Right rotate
+Node* rightRotate(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+
+// Left rotate
+Node* leftRotate(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    return y;
+}
+
+// Get balance factor
+int getBalance(Node* n) {
+    if (n == nullptr) return 0;
+    return height(n->left) - height(n->right);
+}
+
+// Insert contact by name (for alphabetical order)
+Node* insert(Node* node, Contact c) {
+    if (node == nullptr)
+        return createNode(c);
+
+    if (cmp(c.name, node->data.name) < 0)
+        node->left = insert(node->left, c);
+    else if (cmp(c.name, node->data.name) > 0)
+        node->right = insert(node->right, c);
+    else
+        return node; // duplicate names not inserted
+
+    node->height = 1 + max(height(node->left), height(node->right));
+
+    int balance = getBalance(node);
+
+    // LL
+    if (balance > 1 && cmp(c.name, node->left->data.name) < 0)
+        return rightRotate(node);
+
+    // RR
+    if (balance < -1 && cmp(c.name, node->right->data.name) > 0)
+        return leftRotate(node);
+
+    // LR
+    if (balance > 1 && cmp(c.name, node->left->data.name) > 0) {
+        node->left = leftRotate(node->left);
+        return rightRotate(node);
+    }
+
+    // RL
+    if (balance < -1 && cmp(c.name, node->right->data.name) < 0) {
+        node->right = rightRotate(node->right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+// Search contact by name
+Node* searchByName(Node* root, const char* name) {
+    if (!root) return nullptr;
+    int res = cmp(name, root->data.name);
+    if (res == 0) return root;
+    else if (res < 0) return searchByName(root->left, name);
+    else return searchByName(root->right, name);
+}
+
+// Search by phone
+Node* searchByPhone(Node* root, const char* phone) {
+    if (!root) return nullptr;
+    if (cmp(root->data.phone, phone) == 0) return root;
+    Node* leftRes = searchByPhone(root->left, phone);
+    if (leftRes) return leftRes;
+    return searchByPhone(root->right, phone);
+}
+
+// Search by email
+Node* searchByEmail(Node* root, const char* email) {
+    if (!root) return nullptr;
+    if (cmp(root->data.email, email) == 0) return root;
+    Node* leftRes = searchByEmail(root->left, email);
+    if (leftRes) return leftRes;
+    return searchByEmail(root->right, email);
+}
+
+// Update contact info
+void updateContact(Node* root, const char* name) {
+    Node* node = searchByName(root, name);
+    if (!node) {
+        cout << "Contact not found.\n";
+        return;
+    }
+    cout << "Enter new phone number: ";
+    cin >> node->data.phone;
+    cout << "Enter new email: ";
+    cin >> node->data.email;
+    cout << "Contact updated successfully.\n";
+}
+
+// Display contacts (Inorder Traversal)
+void inorder(Node* root) {
+    if (!root) return;
+    inorder(root->left);
+    cout << "ID: " << root->data.id
+         << " | Name: " << root->data.name
+         << " | Phone: " << root->data.phone
+         << " | Email: " << root->data.email << endl;
+    inorder(root->right);
+}
+
+int main() {
+    Node* root = nullptr;
+
+    int choice;
+    Contact newContact;
+    char name[50], phone[15], email[50];
+
+    do {
+        cout << "\n1. Add Contact\n2. Search by Name\n3. Search by Phone\n4. Search by Email\n5. Update Contact\n6. Display All\n7. Exit\nEnter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter ID: ";
+                cin >> newContact.id;
+                cout << "Enter Name: ";
+                cin >> newContact.name;
+                cout << "Enter Phone: ";
+                cin >> newContact.phone;
+                cout << "Enter Email: ";
+                cin >> newContact.email;
+                root = insert(root, newContact);
+                cout << "Contact added.\n";
+                break;
+
+            case 2:
+                cout << "Enter name: ";
+                cin >> name;
+                {
+                    Node* res = searchByName(root, name);
+                    if (res)
+                        cout << "Found: " << res->data.name << " | " << res->data.phone << " | " << res->data.email << endl;
+                    else
+                        cout << "Contact not found.\n";
+                }
+                break;
+
+            case 3:
+                cout << "Enter phone: ";
+                cin >> phone;
+                {
+                    Node* res = searchByPhone(root, phone);
+                    if (res)
+                        cout << "Found: " << res->data.name << " | " << res->data.phone << " | " << res->data.email << endl;
+                    else
+                        cout << "Contact not found.\n";
+                }
+                break;
+
+            case 4:
+                cout << "Enter email: ";
+                cin >> email;
+                {
+                    Node* res = searchByEmail(root, email);
+                    if (res)
+                        cout << "Found: " << res->data.name << " | " << res->data.phone << " | " << res->data.email << endl;
+                    else
+                        cout << "Contact not found.\n";
+                }
+                break;
+
+            case 5:
+                cout << "Enter name to update: ";
+                cin >> name;
+                updateContact(root, name);
+                break;
+
+            case 6:
+                cout << "\n--- Contact List ---\n";
+                inorder(root);
+                break;
+
+            case 7:
+                cout << "Exiting...\n";
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+    } while (choice != 7);
+}
+
+
+
+
+
+
